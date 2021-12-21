@@ -7,71 +7,40 @@ import time
 import random
 
 
+def get_bezier_coef_thomas(points):
+    pass
+
+
+
+
 def get_bezier_coef(points):
+    # since the formulas work given that we have n+1 points
+    # then n must be this:
     n = len(points) - 1
 
-    # my implementation for thomas algorithm
+    # build coefficents matrix
+    C = 4 * np.identity(n)
+    np.fill_diagonal(C[1:], 1)
+    np.fill_diagonal(C[:, 1:], 1)
+    C[0, 0] = 2
+    C[n - 1, n - 1] = 7
+    C[n - 1, n - 2] = 2
 
-    # magic numbers
-    a = 0
-    b = 1
-    c = 2
+    # build points vector
+    P = [2 * (2 * points[i] + points[i + 1]) for i in range(n)]
+    P[0] = points[0] + 2 * points[1]
+    P[n - 1] = 8 * points[n - 1] + points[n]
 
-    # T is the tri-diagonally matrix shift to nx3 matrix
-
-    # building T
-    T = np.ones([n, 3])
-    T[1: n - 1, b] = 4
-
-    T[n - 1, a] = 2
-    T[n - 1, b] = 7
-    T[n - 1, c] = 0
-
-    T[0, a] = 0
-    T[0, b] = 2
-    T[0, c] = 1
-
-    # building the solution vectors (the solution are points so we wil solve this twice for x and y)
-
-    Dx = [2 * (2 * points[i, 0] + points[i + 1, 0]) for i in range(n)]
-    Dx[0] = points[0, 0] + 2 * points[1, 0]
-    Dx[n - 1] = 8 * points[n - 1, 0] + points[n, 0]
-
-    Dy = [2 * (2 * points[i, 1] + points[i + 1, 1]) for i in range(n)]
-    Dy[0] = points[0, 1] + 2 * points[1, 1]
-    Dy[n - 1] = 8 * points[n - 1, 1] + points[n, 1]
-
-    T[0, c] = np.divide(T[0, c], T[0, b])
-    Dx[0] = np.divide(Dx[0], T[0, b])
-    Dy[0] = np.divide(Dy[0], T[0, b])
-
-    # TODO: change to map?? or something faster
-    for i in range(1, n):
-        T[i, c] = np.divide(T[i, c], np.subtract(T[i, b], np.multiply(T[i, a], T[i - 1, c])))
-
-        Dx[i] = np.divide(np.subtract(Dx[i], np.multiply(T[i, a], Dx[i - 1])),
-                          np.subtract(T[i, b], np.multiply(T[i, a], T[i - 1, c])))
-
-        Dy[i] = np.divide(np.subtract(Dy[i], np.multiply(T[i, a], Dy[i - 1])),
-                          np.subtract(T[i, b], np.multiply(T[i, a], T[i - 1, c])))
-
-    A = np.zeros([n, 2])
-
-    A[n - 1, 0] = Dx[n - 1]
-    A[n - 1, 1] = Dy[n - 1]
-    for i in range(n - 2, -1, -1):
-        A[i, 0] = np.subtract(Dx[n - 1], np.multiply(T[i, c], A[i + 1, 0]))
-        A[i, 1] = np.subtract(Dy[n - 1], np.multiply(T[i, c], A[i + 1, 1]))
-    # code from the example
+    # solve system, find a & b
+    A = np.linalg.solve(C, P)
     B = [0] * n
     for i in range(n - 1):
         B[i] = 2 * points[i + 1] - A[i + 1]
     B[n - 1] = (A[n - 1] + points[n]) / 2
-    # end of code from the example
+
     return A, B
 
 
-# returns the general Bezier cubic formula given 4 control points
 def get_cubic_x(a, b, c, d):
     return np.poly1d([-a[0] + 3 * b[0] - 3 * c[0] + d[0], 3 * a[0] - 6 * b[0] + 3 * c[0], -3 * a[0] + 3 * b[0], a[0]])
 
@@ -84,21 +53,8 @@ def get_cubic_y(a, b, c, d):
 def evaluate_bezier(points, a, b):
     n = len(points) - 1
     A, B = get_bezier_coef(points)
-    print(A)
-    print(B)
-    # xc is polynomial of t - P(t), that gives the x value of the curve for a given t, (P(t) - x0) roots will give me
-    # the t that fit to a given x0
-    xc = [
-        get_cubic_x(points[i], A[i], B[i], points[i + 1])
-        for i in range(n)
-    ]
-
-    # yc is polynomial of t, that gives the y value of the curve for a given t, with the root of the previous
-    # (P(t) - x0) i can find the y value of x0
-    yc = [
-        get_cubic_y(points[i], A[i], B[i], points[i + 1])
-        for i in range(n)
-    ]
+    xc = [get_cubic_x(points[i], A[i], B[i], points[i + 1]) for i in range(n)]
+    yc = [get_cubic_y(points[i], A[i], B[i], points[i + 1]) for i in range(n)]
 
     def f(x0: int):
         if x0 == a:
@@ -106,23 +62,15 @@ def evaluate_bezier(points, a, b):
         elif x0 == b:
             i = n - 1
         else:
-            i = int((x0 - a) / ((b - a)/n))
-        # print("\npoints:\n", points)
-        # print("x0 =", x0)
-        # print("a =", a)
-        # print("b = ", b)
-        # print("i =", i)
-        print("\np =\n", xc[i], "x =", x0)
-        print(xc[i] - x0)
+            i = int((x0 - a) / ((b - a) / n))
         roots = np.roots(xc[i] - x0)
-        t0 = roots[1]
-        # t0 = 0
         print(roots)
-        print("y(t) =\n", yc[i])
-        # for j in range(roots.size):
-        #     if 0 <= roots[j] <= 1 and np.isreal(roots[j]):
-        #         t0 = roots[j]
-        return yc[i - 1](t0)
+        t0 = 0.5
+        for j in range(roots.size):
+            if 0 <= roots[j] <= 1 and np.isreal(roots[j]):
+                t0 = float(roots[j])
+        print("t0 =", t0)
+        return yc[i](t0)
 
     return f
 
@@ -175,6 +123,7 @@ class Assignment1:
             return lambda x: output
         # bezier curves
         xs = np.arange(a, b + (b - a) / (n - 1), (b - a) / (n - 1))
+        # print(xs)
         ys = f(xs)
         points = [None] * xs.size
         for i in range(xs.size):
@@ -199,16 +148,16 @@ class TestAssignment1(unittest.TestCase):
         ass1 = Assignment1()
         mean_err = 0
 
-        numberoftest = 1
-        numberofpointtotest = 10
+        numberoftest = 100
+        numberofpointtotest = 200
         rangeofinterpolate = 5
         for i in tqdm(range(numberoftest)):
 
             f = lambda x: np.arctan(x)
             # f = lambda x: np.exp(-2 * np.power(x, 2))
             # f = lambda x: np.divide(np.sin(x), x)
-            # f = lambda x: np.sin(x) / x
-            # f = np.poly1d([7, 0, -10, 0])
+            f = lambda x: np.sin(x)
+
 
             ff = ass1.interpolate(f, -rangeofinterpolate, rangeofinterpolate, 1000)
 
