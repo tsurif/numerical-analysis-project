@@ -8,9 +8,44 @@ import random
 
 
 def get_bezier_coef_thomas(points):
-    pass
+    n = len(points) - 1
+    a = np.ones(n)
+    a[n - 1] = 2
 
+    b = np.ones(n) * 4
+    b[0] = 2
+    b[n - 1] = 7
 
+    c = np.ones(n)
+
+    x = [2 * (2 * points[i][0] + points[i + 1][0]) for i in range(n)]
+    x[0] = points[0][0] + 2 * points[1][0]
+    x[n - 1] = 8 * points[n - 1][0] + points[n][0]
+
+    y = [2 * (2 * points[i][1] + points[i + 1][1]) for i in range(n)]
+    y[0] = points[0][1] + 2 * points[1][1]
+    y[n - 1] = 8 * points[n - 1][1] + points[n][1]
+
+    for i in range(1, n):
+        w = a[i] / b[i - 1]
+        b[i] = b[i] - w * c[i - 1]
+        x[i] = x[i] - w * x[i - 1]
+        y[i] = y[i] - w * y[i - 1]
+
+    A = np.zeros((n, 2))
+    A[n - 1][0] = x[n - 1] / b[n - 1]
+    A[n - 1][1] = y[n - 1] / b[n - 1]
+
+    for i in range(n - 2, -1, -1):
+        A[i][0] = (x[i] - c[i] * A[i + 1][0]) / b[i]
+        A[i][1] = (y[i] - c[i] * A[i + 1][1]) / b[i]
+
+    B = [0] * n
+    for i in range(n - 1):
+        B[i] = 2 * points[i + 1] - A[i + 1]
+    B[n - 1] = (A[n - 1] + points[n]) / 2
+
+    return A, B
 
 
 def get_bezier_coef(points):
@@ -52,7 +87,9 @@ def get_cubic_y(a, b, c, d):
 # evalute each cubic curve on the range [0, 1] sliced in n points
 def evaluate_bezier(points, a, b):
     n = len(points) - 1
-    A, B = get_bezier_coef(points)
+    A, B = get_bezier_coef_thomas(points)
+    A1, B1 = get_bezier_coef(points)
+    print("\nAt:\n", A,"\nAs:\n",A1)
     xc = [get_cubic_x(points[i], A[i], B[i], points[i + 1]) for i in range(n)]
     yc = [get_cubic_y(points[i], A[i], B[i], points[i + 1]) for i in range(n)]
 
@@ -64,12 +101,10 @@ def evaluate_bezier(points, a, b):
         else:
             i = int((x0 - a) / ((b - a) / n))
         roots = np.roots(xc[i] - x0)
-        print(roots)
         t0 = 0.5
         for j in range(roots.size):
             if 0 <= roots[j] <= 1 and np.isreal(roots[j]):
                 t0 = float(roots[j])
-        print("t0 =", t0)
         return yc[i](t0)
 
     return f
@@ -148,18 +183,18 @@ class TestAssignment1(unittest.TestCase):
         ass1 = Assignment1()
         mean_err = 0
 
-        numberoftest = 100
+        numberoftest = 1
         numberofpointtotest = 200
-        rangeofinterpolate = 5
+        rangeofinterpolate = 10
         for i in tqdm(range(numberoftest)):
 
-            f = lambda x: np.arctan(x)
-            # f = lambda x: np.exp(-2 * np.power(x, 2))
+            # f = lambda x: np.arctan(x)
+            f = lambda x: np.exp(-2 * np.power(x, 2))
             # f = lambda x: np.divide(np.sin(x), x)
-            f = lambda x: np.sin(x)
+            # f = lambda x: np.sin(x)
+            # f = lambda x: x
 
-
-            ff = ass1.interpolate(f, -rangeofinterpolate, rangeofinterpolate, 1000)
+            ff = ass1.interpolate(f, -rangeofinterpolate, rangeofinterpolate, 20)
 
             xs = np.random.random(numberofpointtotest)
             xs = (xs - 0.5) * 2 * rangeofinterpolate
