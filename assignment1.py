@@ -7,7 +7,7 @@ import time
 import random
 
 
-def get_bezier_coef_thomas(points):
+def get_bezier_coef_with_thomas_algorithm(points):
     n = len(points) - 1
     a = np.ones(n)
     a[n - 1] = 2
@@ -40,35 +40,8 @@ def get_bezier_coef_thomas(points):
         A[i][0] = (x[i] - c[i] * A[i + 1][0]) / b[i]
         A[i][1] = (y[i] - c[i] * A[i + 1][1]) / b[i]
 
-    B = [0] * n
-    for i in range(n - 1):
-        B[i] = 2 * points[i + 1] - A[i + 1]
-    B[n - 1] = (A[n - 1] + points[n]) / 2
-
-    return A, B
-
-
-def get_bezier_coef(points):
-    # since the formulas work given that we have n+1 points
-    # then n must be this:
-    n = len(points) - 1
-
-    # build coefficents matrix
-    C = 4 * np.identity(n)
-    np.fill_diagonal(C[1:], 1)
-    np.fill_diagonal(C[:, 1:], 1)
-    C[0, 0] = 2
-    C[n - 1, n - 1] = 7
-    C[n - 1, n - 2] = 2
-
-    # build points vector
-    P = [2 * (2 * points[i] + points[i + 1]) for i in range(n)]
-    P[0] = points[0] + 2 * points[1]
-    P[n - 1] = 8 * points[n - 1] + points[n]
-
-    # solve system, find a & b
-    A = np.linalg.solve(C, P)
-    B = [0] * n
+    # B = [0] * n
+    B = np.zeros((n, 2))
     for i in range(n - 1):
         B[i] = 2 * points[i + 1] - A[i + 1]
     B[n - 1] = (A[n - 1] + points[n]) / 2
@@ -87,24 +60,20 @@ def get_cubic_y(a, b, c, d):
 # evalute each cubic curve on the range [0, 1] sliced in n points
 def evaluate_bezier(points, a, b):
     n = len(points) - 1
-    A, B = get_bezier_coef_thomas(points)
-    A1, B1 = get_bezier_coef(points)
-    print("\nAt:\n", A,"\nAs:\n",A1)
+    A, B = get_bezier_coef_with_thomas_algorithm(points)
     xc = [get_cubic_x(points[i], A[i], B[i], points[i + 1]) for i in range(n)]
     yc = [get_cubic_y(points[i], A[i], B[i], points[i + 1]) for i in range(n)]
 
     def f(x0: int):
-        if x0 == a:
-            i = 0
-        elif x0 == b:
-            i = n - 1
-        else:
-            i = int((x0 - a) / ((b - a) / n))
+        i = int(np.floor(((x0 - a) / (b - a)) * n))
         roots = np.roots(xc[i] - x0)
         t0 = 0.5
+        # print("\n", roots)
         for j in range(roots.size):
-            if 0 <= roots[j] <= 1 and np.isreal(roots[j]):
-                t0 = float(roots[j])
+            if np.isreal(roots[j]):
+                if 0 <= roots[j] <= 1:
+                    t0 = float(roots[j])
+        # print(t0)
         return yc[i](t0)
 
     return f
@@ -157,8 +126,7 @@ class Assignment1:
             output = f((b - a) / 2)
             return lambda x: output
         # bezier curves
-        xs = np.arange(a, b + (b - a) / (n - 1), (b - a) / (n - 1))
-        # print(xs)
+        xs = np.arange(a, b + (b - a) / n, (b - a) / (n - 1))
         ys = f(xs)
         points = [None] * xs.size
         for i in range(xs.size):
@@ -183,23 +151,21 @@ class TestAssignment1(unittest.TestCase):
         ass1 = Assignment1()
         mean_err = 0
 
-        numberoftest = 1
+        numberoftest = 900
         numberofpointtotest = 200
-        rangeofinterpolate = 10
+        rangeofinterpolate = 5
         for i in tqdm(range(numberoftest)):
 
-            # f = lambda x: np.arctan(x)
-            f = lambda x: np.exp(-2 * np.power(x, 2))
+            f = lambda x0: np.arctan(x0)
+            # f = lambda x: np.exp(-2 * np.power(x, 2))
             # f = lambda x: np.divide(np.sin(x), x)
-            # f = lambda x: np.sin(x)
-            # f = lambda x: x
+            # f = lambda x: (3 * x**3 - np.exp(x))/100
 
-            ff = ass1.interpolate(f, -rangeofinterpolate, rangeofinterpolate, 20)
+            ff = ass1.interpolate(f, -rangeofinterpolate, rangeofinterpolate, i + 101)
 
             xs = np.random.random(numberofpointtotest)
             xs = (xs - 0.5) * 2 * rangeofinterpolate
             xs = np.sort(xs)
-            # xs = np.arange(-rangeofinterpolate, rangeofinterpolate + (2 * rangeofinterpolate) / (numberofpointtotest - 1), (2 * rangeofinterpolate) / (numberofpointtotest - 1))
 
             err = 0
 
@@ -207,18 +173,47 @@ class TestAssignment1(unittest.TestCase):
                 yy = ff(x)
                 y = f(x)
                 err += abs(y - yy)
-                # print("")
-                # print("f(", x, ") -> ", y)
-                # print("ff(", x, ") -> ", yy)
-                # print("err = ", abs(y - yy))
 
             err = err / numberofpointtotest
+            print("\nnum of points:", i + 101)
+            print("err = ", err)
             mean_err += err
         mean_err = mean_err / numberoftest
 
         T = time.time() - T
         print(T)
         print(mean_err)
+
+
+    def test_with_poly_original(self):
+        T = time.time()
+
+        ass1 = Assignment1()
+        mean_err = 0
+
+        d = 30
+        for i in tqdm(range(100)):
+            a = np.random.randn(d)
+
+            f = np.poly1d(a)
+
+            ff = ass1.interpolate(f, -10, 10, 100)
+
+            xs = np.random.random(200)
+            err = 0
+            for x in xs:
+                yy = ff(x)
+                y = f(x)
+                err += abs(y - yy)
+
+            err = err / 200
+            mean_err += err
+        mean_err = mean_err / 100
+
+        T = time.time() - T
+        print(T)
+        print(mean_err)
+
 
     def test_with_poly_restrict(self):
         ass1 = Assignment1()
