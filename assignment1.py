@@ -68,12 +68,10 @@ def evaluate_bezier(points, a, b):
         i = int(np.floor(((x0 - a) / (b - a)) * n))
         roots = np.roots(xc[i] - x0)
         t0 = 0.5
-        # print("\n", roots)
         for j in range(roots.size):
             if np.isreal(roots[j]):
                 if 0 <= roots[j] <= 1:
                     t0 = float(roots[j])
-        # print(t0)
         return yc[i](t0)
 
     return f
@@ -125,7 +123,6 @@ class Assignment1:
         if n == 1:
             output = f((b - a) / 2)
             return lambda x: output
-        # bezier curves
         xs = np.arange(a, b + (b - a) / n, (b - a) / (n - 1))
         ys = f(xs)
         points = [None] * xs.size
