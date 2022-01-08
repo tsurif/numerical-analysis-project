@@ -22,12 +22,14 @@ def trapezoidal(f: [[float], float], a: float, b: float, n: int) -> float:
 
 
 def simpson(f: [[float], float], a: float, b: float, n: int) -> float:
-    Xs = my_range(a, b, n)
-    h = (b - a) / n
+    Xs = my_range(a, b, 2 * n)
+
+    h = (b - a) / (Xs.size - 1)
     F0 = f(a)
     F1 = 0
     F2 = f(b)
     for i in range(1, Xs.size - 1):
+        print(i)
         if i % 2 == 0:
             F0 = F0 + f(Xs[i])
             F2 = F2 + f(Xs[i])
