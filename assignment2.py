@@ -48,20 +48,65 @@ class Assignment2:
             |f1(x)-f2(x)|<=maxerr.
 
         """
-        def intersectionsRec(a: float, b: float, X: Iterable) -> Iterable:
 
-        # replace this line with your solution
-            h = lambda x: f1(x) - f2(x)
-            mid = np.average([a,b])
-            if(b-a < maxerr):
-                return X
-            elif(abs(h(mid)) < maxerr):
-                print("hello")
-                return intersectionsRec(a, mid , intersectionsRec(mid, b, np.append(X,mid)))
-            else: return intersectionsRec(a, mid , intersectionsRec(mid, b, X))
+        def f(x: float) -> float:
+            return f1(x) - f2(x)
+
+        epsilon = 0.0001
+
+        def derivative_at_point(x):
+            return (f(x + epsilon) - f(x)) / epsilon
+
+        def sec_derivative_at_point(x):
+            return (derivative_at_point(f(x + epsilon)) - derivative_at_point(f(x))) / epsilon
+
+        def bisection(x0: float, x1: float, step_count):
+            mid = (x0 + x1) / 2
+            #print(x0, mid, x1)
+            #if (mid == x0) | (mid == x1):
+            #    return mid
+            if np.abs(f(mid)) < maxerr:
+                print("#######################################################found:", f(mid))
+                print("#######################################################after", step_count, "steps")
+                return mid
+            if f(mid) * f(x0) < 0:
+                return bisection(x0, mid, step_count + 1)
+            else:
+                return bisection(mid, x1, step_count + 1)
+
+        def all_roots_iter() -> Iterable:
+            solutions = np.array([])
+            x = a
+            while x < b:
+                print("starting@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+                print("x =", x)
+                print("     f(", x,")=", f(x))
+                dx = derivative_at_point(x)
+                if abs(dx) > 1:
+                    x1 = x - (f(x) / dx)
+                else:
+                    x1 = x + 0.1
+                if x1 < x:
+                    x1 = x + 0.1
+
+                if f(x) * f(x1) < 0 and x1 > x:
+                    print("start bisection with:#########################################################################")
+                    print("x =", x)
+                    print("f(x)=", f(x))
+                    print("x1 =", x1)
+                    print("f(x1)=", f(x1))
+
+                    solutions = np.append(solutions, bisection(x, x1, 0))
+
+                print("in this round x was", x, "and x1 was", x1)
+                x = x1
 
 
-        return intersectionsRec(a, b, [])
+            return solutions
+
+        output = all_roots_iter()
+        print(f(output))
+        return output
 
 
 ##########################################################################
@@ -92,12 +137,43 @@ class TestAssignment2(unittest.TestCase):
         ass2 = Assignment2()
 
         f1, f2 = randomIntersectingPolynomials(10)
+        print(f1)
+        print(f2)
 
         X = ass2.intersections(f1, f2, -1000, 1000, maxerr=0.01)
         print(X)
 
         for x in X:
-            self.assertGreaterEqual(0.1, abs(f1(x) - f2(x)))
+            self.assertGreaterEqual(0.01, abs(f1(x) - f2(x)))
+
+    def test_my_poly(self):
+
+        ass2 = Assignment2()
+
+        f0 = np.poly1d([-5, -2, 0, 2, 5], True)
+        f1 = lambda a: f0(a)/10
+        f2 = lambda a: 0
+        print(f1)
+        print(f2)
+
+        X = ass2.intersections(f1, f2, -10, 10, maxerr=0.01)
+        print(X)
+
+        for x in X:
+            self.assertGreaterEqual(0.01, abs(f1(x) - f2(x)))
+
+    def test_sin(self):
+
+        ass2 = Assignment2()
+
+        f1 = np.sin
+        f2 = lambda a: 0
+
+        X = ass2.intersections(f1, f2, -10, 10, maxerr=0.01)
+        print(X)
+
+        for x in X:
+            self.assertGreaterEqual(0.01, abs(f1(x) - f2(x)))
 
 
 if __name__ == "__main__":
