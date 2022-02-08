@@ -52,13 +52,15 @@ class Assignment2:
         def f(x: float) -> float:
             return f1(x) - f2(x)
 
-        epsilon = 0.0001
+        epsilon = 0.000001
 
         def derivative_at_point(x):
-            return (f(x + epsilon) - f(x)) / epsilon
+            dy = f(x + epsilon) - f(x)
+            dx = epsilon
+            return dy/dx
 
         def sec_derivative_at_point(x):
-            return (derivative_at_point(f(x + epsilon)) - derivative_at_point(f(x))) / epsilon
+            return (derivative_at_point(x + epsilon) - derivative_at_point(x))/epsilon
 
         def bisection(x0: float, x1: float, step_count):
             mid = (x0 + x1) / 2
@@ -104,9 +106,65 @@ class Assignment2:
 
             return solutions
 
-        output = all_roots_iter()
-        print(f(output))
-        return output
+        def all_roots_iter_v2() -> Iterable:
+            solutions = np.array([])
+            x = a
+            while x < b:
+                fx0 = f(x)
+                dx0 = derivative_at_point(x)
+                ddx0 = sec_derivative_at_point(x)
+
+                print("starting@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+                print("x =", x)
+                print("     f(", x, ")=", fx0)
+                print("     f'(", x, ")=", dx0)
+                print("     f''(", x, ")=", ddx0)
+                if np.abs(fx0) < maxerr:
+                    print("found without bisection")
+                    solutions = np.append(solutions, x)
+                    x1 = x + maxerr
+                else:
+                    if f(x) * ddx0 < 0 and abs(ddx0) > 0.3:
+                        print("using g")
+                        a0 = ddx0/2
+                        b0 = dx0 - 2 * a0 * x
+                        c0 = fx0 - a0 * x * x - b0 * x
+                        x1 = max((-b0 - np.sqrt(b0 ** 2 - 4 * a0 * c0))/(2 * a0),
+                                 (-b0 + np.sqrt(b0 ** 2 - 4 * a0 * c0))/(2 * a0))
+                        print("x =", x, "x1 =", x1)
+                        if x1 - x < maxerr:
+                            x1 = x + maxerr
+                    elif abs(dx0) > 1:
+                        print("using newton")
+                        x1 = x - (f(x) / dx0)
+                    else:
+                        print("not using")
+                        x1 = x + maxerr
+                    if x1 < x:
+                        print("defult...")
+                        x1 = x + x - x1
+
+                    if f(x) * f(x1) < 0 and x1 > x:
+                        print("start bisection with:#########################################################################")
+                        print("x =", x)
+                        print("f(x)=", f(x))
+                        print("x1 =", x1)
+                        print("f(x1)=", f(x1))
+
+                        solutions = np.append(solutions, bisection(x, x1, 0))
+
+                print("in this round x was", x, "and x1 was", x1)
+                x = x1
+
+
+            return solutions
+
+        #output = all_roots_iter()
+        output2 = all_roots_iter_v2()
+        #print("v1 =", output)
+        print("v2 =", output2)
+
+        return output2
 
 
 ##########################################################################
