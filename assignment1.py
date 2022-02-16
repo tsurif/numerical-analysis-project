@@ -123,7 +123,8 @@ class Assignment1:
         if n == 1:
             output = f((b - a) / 2)
             return lambda x: output
-        xs = np.arange(a, b + (b - a) / n, (b - a) / (n - 1))
+        # xs = np.arange(a, b + (b - a) / n, (b - a) / (n - 1))
+        xs = np.linspace(a, b, n)
         ys = f(xs)
         points = [None] * xs.size
         for i in range(xs.size):
@@ -153,8 +154,11 @@ class TestAssignment1(unittest.TestCase):
         rangeofinterpolate = 5
         for i in tqdm(range(numberoftest)):
 
-            f = lambda x0: np.arctan(x0)
+            # f = lambda x0: np.arctan(x0)
             # f = lambda x: np.exp(-2 * np.power(x, 2))
+
+            def f(x):
+                return np.log(np.log(x))
             # f = lambda x: np.divide(np.sin(x), x)
             # f = lambda x: (3 * x**3 - np.exp(x))/100
 
