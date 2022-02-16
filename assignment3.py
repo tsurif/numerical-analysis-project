@@ -19,6 +19,13 @@ This assignment is more complicated than Assignment1 and Assignment2 because:
 import numpy as np
 import time
 import random
+from assignment2 import *
+
+
+def my_range(a: float, b: float, n: int):
+    if n % 2 == 0:
+        n = n - 1
+    return np.linspace(a, b, n)
 
 
 class Assignment3:
@@ -29,6 +36,11 @@ class Assignment3:
         """
 
         pass
+
+    def print_result(self, expected_result, result):
+        print("expected:", expected_result)
+        print("got:", result)
+        print("error:", np.abs(expected_result - result))
 
     def integrate(self, f: callable, a: float, b: float, n: int) -> np.float32:
         """
@@ -57,11 +69,21 @@ class Assignment3:
         np.float32
             The definite integral of f between a and b
         """
-
         # replace this line with your solution
-        result = np.float32(1.0)
+        Xs = my_range(a, b, n)
+        FXs = f(Xs)
 
-        return result
+        h = (b - a) / (Xs.size - 1)
+        F0 = f(a)
+        F1 = 0
+        F2 = f(b)
+        for i in range(1, Xs.size - 1):
+            if i % 2 == 0:
+                F0 = F0 + FXs[i]
+                F2 = F2 + FXs[i]
+            else:
+                F1 = F1 + FXs[i]
+        return np.float32((h / 3) * (F0 + 4 * F1 + F2))
 
     def areabetween(self, f1: callable, f2: callable) -> np.float32:
         """
@@ -89,11 +111,18 @@ class Assignment3:
             The area between function and the X axis
 
         """
+        Xs = Assignment2.intersections(self, f1, f2, 1, 100)
 
-        # replace this line with your solution
-        result = np.float32(1.0)
+        # print(Xs)
 
-        return result
+        def f(x: float) -> float:
+            return np.abs(f1(x) - f2(x))
+
+        output = 0
+        for i in range(len(Xs) - 1):
+            output = output + self.integrate(f, Xs[i], Xs[i + 1], 100)
+
+        return output
 
 
 ##########################################################################
@@ -106,19 +135,81 @@ from tqdm import tqdm
 
 class TestAssignment3(unittest.TestCase):
 
+    def test_poly_deg_2(self):
+        ass3 = Assignment3()
+        f1 = np.poly1d([2, 0, 0])
+        r = ass3.integrate(f1, 0, 1, 3)
+        true_result = 2 / 3
+        Assignment3.print_result(self, true_result, r)
+        self.assertGreaterEqual(0.001, abs((r - true_result) / true_result))
+
+    def test_sin(self):
+        ass3 = Assignment3()
+        f1 = np.sin
+        r = ass3.integrate(f1, 0, 11 * np.pi, 100)
+        true_result = -np.cos(101 * np.pi) - (-np.cos(0))
+        Assignment3.print_result(self, true_result, r)
+        self.assertGreaterEqual(0.001, abs((r - true_result) / true_result))
+
     def test_integrate_float32(self):
         ass3 = Assignment3()
         f1 = np.poly1d([-1, 0, 1])
         r = ass3.integrate(f1, -1, 1, 10)
 
-        self.assertEquals(r.dtype, np.float32)
+        self.assertEqual(r.dtype, np.float32)
 
-    def test_integrate_hard_case(self):
+    # def test_integrate_hard_case(self):
+    #     ass3 = Assignment3()
+    #     f1 = strong_oscilations()
+    #     r = ass3.integrate(f1, 0.09, 10, 20)
+    #     true_result = -7.78662 * 10 ** 33
+    #     print(r)
+    #     print(true_result)
+    #     self.assertGreaterEqual(0.001, abs((r - true_result) / true_result))
+
+    def test_area_polys(self):
         ass3 = Assignment3()
-        f1 = strong_oscilations()
-        r = ass3.integrate(f1, 0.09, 10, 20)
-        true_result = -7.78662 * 10 ** 33
-        self.assertGreaterEqual(0.001, abs((r - true_result) / true_result))
+        f1 = np.poly1d([2, -11, 13])
+        f2 = np.poly1d([-3, 20, -20])
+        r = ass3.areabetween(f1, f2)
+        true_result = (301 * np.sqrt(301)) / 150
+        Assignment3.print_result(self, true_result, r)
+
+        self.assertGreaterEqual(0.1, abs((r - true_result) / true_result))
+
+    def test_area_polys_2(self):
+        ass3 = Assignment3()
+        f1 = np.poly1d([1, 2, 4], True)
+        f2 = np.poly1d([1.1, 3], True)
+        r = ass3.areabetween(f1, f2)
+        true_result = 5.66026
+        Assignment3.print_result(self, true_result, r)
+
+        self.assertGreaterEqual(0.1, abs((r - true_result) / true_result))
+
+    def test_area_sin(self):
+        ass3 = Assignment3()
+        f1 = np.sin
+
+        r = ass3.areabetween(f1, lambda a: 0)
+        true_result = 60
+        Assignment3.print_result(self, true_result, r)
+
+        self.assertGreaterEqual(0.1, abs((r - true_result) / true_result))
+
+    def test_area_sin2(self):
+        ass3 = Assignment3()
+
+        def f(x: float) -> float:
+            return np.sin(10 / x) - 0.3
+
+        r = ass3.areabetween(f, lambda a: 0)
+        true_result = 9.77332
+        Assignment3.print_result(self, true_result, r)
+
+        self.assertGreaterEqual(0.1, abs((r - true_result) / true_result))
+
+
 
 
 if __name__ == "__main__":
