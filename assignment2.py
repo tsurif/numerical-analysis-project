@@ -64,7 +64,7 @@ class Assignment2:
 
         def bisection(x0: float, x1: float):
             mid = (x0 + x1) / 2
-            fmid= f(mid)
+            fmid = f(mid)
             if np.abs(fmid) < maxerr:
                 return mid
             if fmid * f(x0) < 0:
@@ -74,16 +74,18 @@ class Assignment2:
 
         def bisection_test(x0: float, x1: float, step_count):
             mid = (x0 + x1) / 2
-            fmid= f(mid)
+            fmid = f(mid)
             if np.abs(fmid) < maxerr:
                 print("#######################################################found:", mid, f(mid))
                 print("#######################################################after", step_count, "steps")
                 return mid
+            print("[", f(x0), f(mid), f(x1), "]")
+            print("[", x0, mid, x1, "]")
             if fmid * f(x0) < 0:
-                print(f(mid))
+                print(">>>")
                 return bisection_test(x0, mid, step_count + 1)
             else:
-                print(f(mid))
+                print("<<<")
                 return bisection_test(mid, x1, step_count + 1)
 
         def all_roots_iter() -> Iterable:
@@ -93,57 +95,71 @@ class Assignment2:
                 fx0 = f(x)
 
                 if np.abs(fx0) < maxerr:
-                    #print("found", x, fx0, " without bisection")
+                    # print("found", x, fx0, " without bisection")
                     solutions = np.append(solutions, x)
                     x1 = x + maxerr * 1.001
                 else:
                     dx0 = derivative_at_point(x)
                     ddx0 = sec_derivative_at_point(x)
 
-                    #print("starting@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-                    if f(x) * ddx0 < 0 and abs(ddx0) > 0.5:
-                        #print("using g")
-                        #print("x =", x)
-                        #print("     f(", x, ")=", fx0)
-                        #print("     f'(", x, ")=", dx0)
-                        #print("     f''(", x, ")=", ddx0)
-                        a0 = ddx0 / 2
-                        b0 = dx0 - 2 * a0 * x
-                        c0 = fx0 - a0 * x * x - b0 * x
-                        x1 = max((-b0 - np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0),
-                                 (-b0 + np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0))
-                        #print("x =", x, "x1 =", x1)
-                        if x1 - x < maxerr:
-                            x1 = x + maxerr * 1.001
-                    elif abs(dx0) > 0.5:
-                        #print("using newton")
-                        #print("x =", x)
-                        #print("     f(", x, ")=", fx0)
-                        #print("     f'(", x, ")=", dx0)
+                    if (f(x) > 0 and ddx0 < 0 and dx0 < -1) or (f(x) < 0 and ddx0 > 0 and dx0 > 1):
+                       # print("using g")
+                       # print("     f(", x, ")=", fx0)
+                       # print("     f'(", x, ")=", dx0)
+                       # print("     f''(", x, ")=", ddx0)
+                       a0 = ddx0 / 2
+                       b0 = dx0 - 2 * a0 * x
+                       c0 = fx0 - a0 * x * x - b0 * x
+                       x1 = max((-b0 - np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0),
+                                (-b0 + np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0))
+
+                       if x1 - x < maxerr:
+                           x1 = x + maxerr * 1.001
+
+                    elif (f(x) > 0 and ddx0 < 0 and dx0 > 0.5) or (f(x) < 0 and ddx0 > 0 and dx0 < -0.5):
+                       # print("using reverse g")
+                       # print("     f(", x, ")=", fx0)
+                       # print("     f'(", x, ")=", dx0)
+                       # print("     f''(", x, ")=", ddx0)
+                       a0 = ddx0 / 2
+                       b0 = dx0 - 2 * a0 * x
+                       c0 = fx0 - a0 * x * x - b0 * x
+                       x1 = min((-b0 - np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0),
+                                (-b0 + np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0))
+                       x1 = x + (x - x1)
+                       if x1 - x < maxerr:
+                           x1 = x + maxerr * 1.001
+                    elif abs(dx0) > 0.9:
+                        # print("using newton")
+                        # if fx0 * dx0 > 0:
+                        #     print("reverse")
+                        # print("x =", x)
+                        # print("     f(", x, ")=", fx0)
+                        # print("     f'(", x, ")=", dx0)
+                        # print("     f''(", x, ")=", ddx0)
+
                         x1 = max(x - (fx0 / dx0), x + (fx0 / dx0), x + maxerr * 1.001)
                     else:
-                        #print("not using")
+                        # print("not using")
                         x1 = x + maxerr * 100
 
                     x1 = min(x1, b)
                     if f(x) * f(x1) < 0 and x1 > x:
-                        #print(
-                            #   "start bisection with:#########################################################################")
-                        #print("x =", x)
-                        #print("f(x)=", f(x))
-                        #print("x1 =", x1)
-                        #print("f(x1)=", f(x1))
+                        # print(
+                        #   "start bisection with:#########################################################################")
+
 
                         solutions = np.append(solutions, bisection(x, x1))
-                        #solutions = np.append(solutions, bisection_test(x, x1, 0))
+                        # solutions = np.append(solutions, bisection_test(x, x1, 0))
                         x1 = x1 + maxerr * 1.001
 
-                #print("in this round x was", x, "and x1 was", x1)
+                # print("in this round x was", x, "and x1 was", x1)
                 x = x1
 
             return solutions
 
         return all_roots_iter()
+
 
 ##########################################################################
 
@@ -184,13 +200,58 @@ class TestAssignment2(unittest.TestCase):
 
         ass2 = Assignment2()
 
-        f0 = np.poly1d([0, 1, 2, 3, 5, 6, 7, 8, 9, 10], True)
+        f0 = np.poly1d([2, 60, 61], True)
         f1 = lambda a: f0(a)
         f2 = lambda a: 0
         print(f1)
         print(f2)
-        err = 0.0001
-        X = ass2.intersections(f1, f2, -10000000, 90000000, maxerr=err)
+        err = 0.01
+        X = ass2.intersections(f1, f2, -1000, 10000, maxerr=err)
+        print(len(X))
+        print(X)
+
+        oldx = -100000
+        for x in X:
+            if oldx != -100000 and x - oldx <= err:
+                print("fail...")
+            oldx = x
+
+        for x in X:
+            self.assertGreaterEqual(err, abs(f1(x) - f2(x)))
+
+    def test_my_poly2(self):
+
+        ass2 = Assignment2()
+
+        f0 = np.poly1d([3, -5, 0, 2, -0.4])
+        f1 = lambda a: f0(a)
+        f2 = lambda a: 0
+        print(f1)
+        print(f2)
+        err = 0.000001
+        X = ass2.intersections(f1, f2, -10000000, 200000000, maxerr=err)
+        print(len(X))
+        print(X)
+
+        oldx = -100000
+        for x in X:
+            if oldx != -100000 and x - oldx <= err:
+                print("fail...")
+            oldx = x
+
+        for x in X:
+            self.assertGreaterEqual(err, abs(f1(x) - f2(x)))
+
+    def test_my_poly3(self):
+
+        ass2 = Assignment2()
+
+        f1 = np.poly1d([1, 2, 4], True)
+        f2 = np.poly1d([1.1, 3], True)
+        print(f1)
+        print(f2)
+        err = 0.001
+        X = ass2.intersections(f1, f2, -10000000, 200000000, maxerr=err)
         print(len(X))
         print(X)
 
@@ -207,12 +268,12 @@ class TestAssignment2(unittest.TestCase):
 
         ass2 = Assignment2()
 
-        f1 = lambda a: np.sin(a) - 0.7
+        f1 = lambda a: np.sin(a)
         f2 = lambda a: 0
-        err = 0.001
-        X = ass2.intersections(f1, f2, 0, np.pi * 100, maxerr=err)
+        err = 0.01
+        X = ass2.intersections(f1, f2, 0, np.pi * 1000, maxerr=err)
         print(len(X))
-        #print(X)
+        # print(X)
 
         oldx = -100000
         for x in X:
@@ -226,10 +287,14 @@ class TestAssignment2(unittest.TestCase):
 
         ass2 = Assignment2()
 
-        f1 = lambda a: np.sin(100/a)
-        f2 = lambda a: 0
-        err = 0.01
-        X = ass2.intersections(f1, f2, -5, 5, maxerr=err)
+        def f3_nr(a):
+            return np.sin(pow(a, 2))
+
+        def f10(a):
+            return np.sin(np.log(a))
+
+        err = 0.001
+        X = ass2.intersections(f3_nr, f10, 1, 10, maxerr=err)
         print(X)
         print(len(X))
 
@@ -240,8 +305,7 @@ class TestAssignment2(unittest.TestCase):
             oldx = x
 
         for x in X:
-            self.assertGreaterEqual(err, abs(f1(x) - f2(x)))
-
+            self.assertGreaterEqual(err, abs(f3_nr(x) - f10(x)))
 
 
 if __name__ == "__main__":
