@@ -31,7 +31,7 @@ class Assignment4A:
 
         pass
 
-    def fit(self, f: callable, a: float, b: float, d:int, maxtime: float) -> callable:
+    def fit(self, f: callable, a: float, b: float, d: int, maxtime: float) -> callable:
         """
         Build a function that accurately fits the noisy data points sampled from
         some closed shape. 
@@ -54,11 +54,45 @@ class Assignment4A:
         a function:float->float that fits f between a and b
         """
 
-        # replace these lines with your solution
-        result = lambda x: x
-        y = f(1)
+        T0 = time.time()
+        xs = np.linspace(a, b, d + 1)
+        ys = [0] * (d + 1)
+        counts = [0] * (d + 1)
+        count = 1
+        while time.time() - T0 < maxtime - 1:
+            for i in range(xs.size):
+                ys[i] = ys[i] + f(xs[i])
+                counts[i] = count
+                if time.time() - T0 > maxtime - 1:
+                    break
+            count = count + 1
+        print(count)
+        for i in range(xs.size):
+            ys[i] = ys[i] / counts[i]
 
-        return result
+        def interpolate():
+            def L(i):
+                j = 0
+                filterd_xs = [None] * 0
+                for x in xs:
+                    if j != i:
+                        filterd_xs.append(x)
+                    j = j + 1
+                poly_i = np.poly1d(filterd_xs, True)
+                c = poly_i(xs[i])
+                output = poly_i * (ys[i] / c)
+                return output
+
+            Ps = [None] * 0
+            for i in range(xs.size):
+                Ps.append(L(i))
+            output = np.poly1d([0])
+            for p in Ps:
+                output = output + p
+            return output
+
+        return interpolate()
+
 
 
 ##########################################################################
@@ -72,39 +106,37 @@ from tqdm import tqdm
 class TestAssignment4(unittest.TestCase):
 
     def test_return(self):
-        f = NOISY(0.01)(poly(1,1,1))
+        f = NOISY(0.01)(poly(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1))
         ass4 = Assignment4A()
         T = time.time()
-        shape = ass4.fit(f=f, a=0, b=1, d=10, maxtime=5)
+        shape = ass4.fit(f=f, a=-1, b=1, d=12, maxtime=5)
         T = time.time() - T
         self.assertLessEqual(T, 5)
 
     def test_delay(self):
-        f = DELAYED(7)(NOISY(0.01)(poly(1,1,1)))
+        f = DELAYED(0.1)(NOISY(0.01)(poly(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)))
 
         ass4 = Assignment4A()
         T = time.time()
-        shape = ass4.fit(f=f, a=0, b=1, d=10, maxtime=5)
+        mt = 10
+        shape = ass4.fit(f=f, a=-1, b=1, d=12, maxtime=mt)
         T = time.time() - T
-        self.assertGreaterEqual(T, 5)
+        self.assertGreaterEqual(mt, T)
 
     def test_err(self):
-        f = poly(1,1,1)
-        nf = NOISY(1)(f)
+        f = poly(-7, 5, -9, 4, 2, 32, -4, 5, -11, 1)
+        nf = DELAYED(0.1)(NOISY(1)(f))
         ass4 = Assignment4A()
         T = time.time()
-        ff = ass4.fit(f=nf, a=0, b=1, d=10, maxtime=5)
+        ff = ass4.fit(f=nf, a=-3, b=3, d=9, maxtime=5)
+        print(ff)
         T = time.time() - T
-        mse=0
-        for x in np.linspace(0,1,1000):            
-            self.assertNotEquals(f(x), nf(x))
-            mse+= (f(x)-ff(x))**2
-        mse = mse/1000
+        mse = 0
+        for x in np.linspace(0, 1, 100):
+            # self.assertNotEquals(f(x), ff(x))
+            mse += (f(x) - ff(x)) ** 2
+        mse = mse / 1000
         print(mse)
-
-        
-        
-
 
 
 if __name__ == "__main__":

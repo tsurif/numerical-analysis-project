@@ -7,6 +7,9 @@ import time
 import random
 
 
+# from math import log
+
+
 def get_bezier_coef_with_thomas_algorithm(points):
     n = len(points) - 1
     a = np.ones(n)
@@ -57,6 +60,21 @@ def get_cubic_y(a, b, c, d):
     return np.poly1d([-a[1] + 3 * b[1] - 3 * c[1] + d[1], 3 * a[1] - 6 * b[1] + 3 * c[1], -3 * a[1] + 3 * b[1], a[1]])
 
 
+def derivative_at_point(f, x):
+    dy = f(x + 0.000001) - f(x)
+    return dy / 0.000001
+
+
+def newton_raphson(f: callable, t0):
+    ft0 = f(t0)
+    if np.abs(ft0) < 0.00000000001:
+        return t0
+    else:
+        dt0 = derivative_at_point(f, t0)
+        t1 = t0 - (f(t0) / dt0)
+        return newton_raphson(f, t1)
+
+
 # evalute each cubic curve on the range [0, 1] sliced in n points
 def evaluate_bezier(points, a, b):
     n = len(points) - 1
@@ -66,13 +84,15 @@ def evaluate_bezier(points, a, b):
 
     def f(x0: int):
         i = int(np.floor(((x0 - a) / (b - a)) * n))
-        roots = np.roots(xc[i] - x0)
-        t0 = 0.5
-        for j in range(roots.size):
-            if np.isreal(roots[j]):
-                if 0 <= roots[j] <= 1:
-                    t0 = float(roots[j])
-        return yc[i](t0)
+        # roots = np.roots(xc[i] - x0)
+        # t0 = 0.5
+        # for j in range(roots.size):
+        #     if np.isreal(roots[j]):
+        #         if 0 <= roots[j] <= 1:
+        #             t0 = float(roots[j])
+        # return yc[i](t0)
+        root = newton_raphson((xc[i] - x0), 0)
+        return yc[i](root)
 
     return f
 
@@ -123,12 +143,11 @@ class Assignment1:
         if n == 1:
             output = f((b - a) / 2)
             return lambda x: output
-        # xs = np.arange(a, b + (b - a) / n, (b - a) / (n - 1))
+
         xs = np.linspace(a, b, n)
-        ys = f(xs)
         points = [None] * xs.size
         for i in range(xs.size):
-            points[i] = [xs[i], ys[i]]
+            points[i] = [xs[i], f(xs[i])]
         points = np.array(points)
         return evaluate_bezier(points, a, b)
 
@@ -149,24 +168,21 @@ class TestAssignment1(unittest.TestCase):
         ass1 = Assignment1()
         mean_err = 0
 
-        numberoftest = 900
+        numberoftest = 10
         numberofpointtotest = 200
         rangeofinterpolate = 5
         for i in tqdm(range(numberoftest)):
 
             # f = lambda x0: np.arctan(x0)
             # f = lambda x: np.exp(-2 * np.power(x, 2))
-
-            def f(x):
-                return np.log(np.log(x))
             # f = lambda x: np.divide(np.sin(x), x)
-            # f = lambda x: (3 * x**3 - np.exp(x))/100
+            f = lambda x: (3 * x**3 - np.exp(x))/100
 
-            ff = ass1.interpolate(f, -rangeofinterpolate, rangeofinterpolate, i + 101)
+            ff = ass1.interpolate(f, -rangeofinterpolate, rangeofinterpolate, i + 10000)
 
             xs = np.random.random(numberofpointtotest)
             xs = (xs - 0.5) * 2 * rangeofinterpolate
-            xs = np.sort(xs)
+            # xs = np.sort(xs)
 
             err = 0
 
@@ -176,7 +192,7 @@ class TestAssignment1(unittest.TestCase):
                 err += abs(y - yy)
 
             err = err / numberofpointtotest
-            print("\nnum of points:", i + 101)
+            print("\nnum of points:", i + 1000)
             print("err = ", err)
             mean_err += err
         mean_err = mean_err / numberoftest
@@ -184,7 +200,6 @@ class TestAssignment1(unittest.TestCase):
         T = time.time() - T
         print(T)
         print(mean_err)
-
 
     def test_with_poly_original(self):
         T = time.time()
@@ -214,7 +229,6 @@ class TestAssignment1(unittest.TestCase):
         T = time.time() - T
         print(T)
         print(mean_err)
-
 
     def test_with_poly_restrict(self):
         ass1 = Assignment1()

@@ -20,6 +20,7 @@ import numpy as np
 import time
 import random
 from assignment2 import *
+# import math
 
 
 def my_range(a: float, b: float, n: int):
@@ -71,18 +72,18 @@ class Assignment3:
         """
         # replace this line with your solution
         Xs = my_range(a, b, n)
-        FXs = f(Xs)
 
         h = (b - a) / (Xs.size - 1)
         F0 = f(a)
         F1 = 0
         F2 = f(b)
         for i in range(1, Xs.size - 1):
+            FX = f(Xs[i])
             if i % 2 == 0:
-                F0 = F0 + FXs[i]
-                F2 = F2 + FXs[i]
+                F0 = F0 + FX
+                F2 = F2 + FX
             else:
-                F1 = F1 + FXs[i]
+                F1 = F1 + FX
         return np.float32((h / 3) * (F0 + 4 * F1 + F2))
 
     def areabetween(self, f1: callable, f2: callable) -> np.float32:
@@ -120,7 +121,7 @@ class Assignment3:
 
         output = 0
         for i in range(len(Xs) - 1):
-            output = output + self.integrate(f, Xs[i], Xs[i + 1], 100)
+            output = output + self.integrate(f, Xs[i], Xs[i + 1], 1000)
 
         return output
 
@@ -146,10 +147,20 @@ class TestAssignment3(unittest.TestCase):
     def test_sin(self):
         ass3 = Assignment3()
         f1 = np.sin
-        r = ass3.integrate(f1, 0, 11 * np.pi, 100)
+        r = ass3.integrate(f1, 0, 101 * np.pi, 10000)
         true_result = -np.cos(101 * np.pi) - (-np.cos(0))
         Assignment3.print_result(self, true_result, r)
         self.assertGreaterEqual(0.001, abs((r - true_result) / true_result))
+
+    # def test_sum_big_small(self):
+    #     ass3 = Assignment3()
+    #     def f(x: float) -> float:
+    #         return np.power(math.log(math.log(x, 10) / 2, 10), 10) + 1
+
+        r = ass3.integrate(f, 0, 100, 1000)
+        r = ass3.areabetween(f, lambda a: 0)
+        true_result = 9.77332
+        Assignment3.print_result(self, true_result, r)
 
     def test_integrate_float32(self):
         ass3 = Assignment3()
@@ -193,7 +204,7 @@ class TestAssignment3(unittest.TestCase):
 
         r = ass3.areabetween(f1, lambda a: 0)
         true_result = 60
-        Assignment3.print_result(self, true_result, r)
+        # Assignment3.print_result(self, true_result, r)
 
         self.assertGreaterEqual(0.1, abs((r - true_result) / true_result))
 
@@ -208,6 +219,9 @@ class TestAssignment3(unittest.TestCase):
         Assignment3.print_result(self, true_result, r)
 
         self.assertGreaterEqual(0.1, abs((r - true_result) / true_result))
+
+
+
 
 
 
