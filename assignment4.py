@@ -54,47 +54,78 @@ class Assignment4A:
         a function:float->float that fits f between a and b
         """
 
+        #
+        # T0 = time.time()
+        # xs = np.linspace(a, b, d + 1)
+        # ys = [0] * (d + 1)
+        # counts = [0] * (d + 1)
+        # count = 1
+        # while time.time() - T0 < maxtime - 1:
+        #     for i in range(xs.size):
+        #         ys[i] = ys[i] + f(xs[i])
+        #         counts[i] = count
+        #         if time.time() - T0 > maxtime - 1:
+        #             break
+        #     count = count + 1
+        # print(count)
+        # for i in range(xs.size):
+        #     ys[i] = ys[i] / counts[i]
+        #
+        # def interpolate():
+        #     def L(i):
+        #         j = 0
+        #         filterd_xs = [None] * 0
+        #         for x in xs:
+        #             if j != i:
+        #                 filterd_xs.append(x)
+        #             j = j + 1
+        #         poly_i = np.poly1d(filterd_xs, True)
+        #         c = poly_i(xs[i])
+        #         output = poly_i * (ys[i] / c)
+        #         return output
+        #
+        #     Ps = [None] * 0
+        #     for i in range(xs.size):
+        #         Ps.append(L(i))
+        #     output = np.poly1d([0])
+        #     for p in Ps:
+        #         output = output + p
+        #     return output
+        #
+        # return interpolate()
+        def solve(A, y):
+            def row_multiplication(A, y, i):
+                y[i] = y[i] / A[i][i]
+                A[i] = A[i] / A[i][i]
+
+            def row_addition(A, y, j, i, k):
+                A[j] = A[j] + k * A[i]
+                y[j] = y[j] + k * y[i]
+
+            n = len(A)
+            for i in range(n):
+                row_multiplication(A, y, i)
+                for j in range(n):
+                    if i != j:
+                        row_addition(A, y, j, i, -A[j][i])
+            return
+
         T0 = time.time()
-        xs = np.linspace(a, b, d + 1)
-        ys = [0] * (d + 1)
-        counts = [0] * (d + 1)
-        count = 1
+        Xs = [a, b]
+        Ys = [f(a), f(b)]
+        count = 2
         while time.time() - T0 < maxtime - 1:
-            for i in range(xs.size):
-                ys[i] = ys[i] + f(xs[i])
-                counts[i] = count
-                if time.time() - T0 > maxtime - 1:
-                    break
+            x = random.uniform(a, b)
+            Xs.append(x)
+            Ys.append(f(x))
             count = count + 1
         print(count)
-        for i in range(xs.size):
-            ys[i] = ys[i] / counts[i]
-
-        def interpolate():
-            def L(i):
-                j = 0
-                filterd_xs = [None] * 0
-                for x in xs:
-                    if j != i:
-                        filterd_xs.append(x)
-                    j = j + 1
-                poly_i = np.poly1d(filterd_xs, True)
-                c = poly_i(xs[i])
-                output = poly_i * (ys[i] / c)
-                return output
-
-            Ps = [None] * 0
-            for i in range(xs.size):
-                Ps.append(L(i))
-            output = np.poly1d([0])
-            for p in Ps:
-                output = output + p
-            return output
-
-        return interpolate()
-
-
-
+        A = np.vander(Xs, d + 1)
+        At = np.transpose(A)
+        AtA = np.matmul(At, A)
+        Atb = np.matmul(At, Ys)
+        solve(AtA, Atb)
+        return np.poly1d(Atb)
 ##########################################################################
 
 
@@ -124,20 +155,36 @@ class TestAssignment4(unittest.TestCase):
         self.assertGreaterEqual(mt, T)
 
     def test_err(self):
-        f = poly(-7, 5, -9, 4, 2, 32, -4, 5, -11, 1)
-        nf = DELAYED(0.1)(NOISY(1)(f))
+        f = poly(1, 2, 3, 4, 1, 2, 3, 4)
+        df = DELAYED(0.0001)(f)
+        nf = NOISY(1)(f)
         ass4 = Assignment4A()
         T = time.time()
-        ff = ass4.fit(f=nf, a=-3, b=3, d=9, maxtime=5)
+        ff = ass4.fit(f=nf, a=-2, b=2, d=7, maxtime=20)
         print(ff)
         T = time.time() - T
+        print("done in ", T)
         mse = 0
-        for x in np.linspace(0, 1, 100):
-            # self.assertNotEquals(f(x), ff(x))
+        for x in np.linspace(0, 1, 1000):
             mse += (f(x) - ff(x)) ** 2
         mse = mse / 1000
         print(mse)
 
+    def test_err_2(self):
+        f = poly(1, 2, 3, 4, 1, 2, 3, 4)
+        df = DELAYED(0.01)(f)
+        nf = NOISY(1)(f)
+        ass4 = Assignment4A()
+        T = time.time()
+        ff = ass4.fit(f=nf, a=-2, b=2, d=7, maxtime=20)
+        # print(ff)
+        T = time.time() - T
+        print("done in ", T)
+        mse = 0
+        for x in np.linspace(-0.5, 0.5, 100):
+            mse += (f(x) - ff(x)) ** 2
+        mse = mse / 100
+        print(mse)
 
 if __name__ == "__main__":
     unittest.main()

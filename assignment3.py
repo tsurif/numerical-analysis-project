@@ -121,7 +121,7 @@ class Assignment3:
 
         output = 0
         for i in range(len(Xs) - 1):
-            output = output + self.integrate(f, Xs[i], Xs[i + 1], 1000)
+            output = output + self.integrate(f, Xs[i], Xs[i + 1], 10000)
 
         return output
 
@@ -147,7 +147,7 @@ class TestAssignment3(unittest.TestCase):
     def test_sin(self):
         ass3 = Assignment3()
         f1 = np.sin
-        r = ass3.integrate(f1, 0, 101 * np.pi, 10000)
+        r = ass3.integrate(f1, 0, 101 * np.pi, 100000)
         true_result = -np.cos(101 * np.pi) - (-np.cos(0))
         Assignment3.print_result(self, true_result, r)
         self.assertGreaterEqual(0.001, abs((r - true_result) / true_result))
@@ -156,11 +156,11 @@ class TestAssignment3(unittest.TestCase):
     #     ass3 = Assignment3()
     #     def f(x: float) -> float:
     #         return np.power(math.log(math.log(x, 10) / 2, 10), 10) + 1
-
-        r = ass3.integrate(f, 0, 100, 1000)
-        r = ass3.areabetween(f, lambda a: 0)
-        true_result = 9.77332
-        Assignment3.print_result(self, true_result, r)
+    #
+    #     r = ass3.integrate(f, 0, 100, 1000)
+    #     r = ass3.areabetween(f, lambda a: 0)
+    #     true_result = 9.77332
+    #     Assignment3.print_result(self, true_result, r)
 
     def test_integrate_float32(self):
         ass3 = Assignment3()

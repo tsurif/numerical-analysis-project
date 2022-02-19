@@ -35,20 +35,20 @@ class MyShape(AbstractShape):
 class Assignment5:
     def __init__(self):
         """
-        Here goes any one time calculation that need to be made before 
-        solving the assignment for specific functions. 
+        Here goes any one time calculation that need to be made before
+        solving the assignment for specific functions.
         """
 
         pass
 
-    def area(contour: callable, maxerr=0.001)->np.float32:
+    def area(self, contour: callable, maxerr=0.001)->np.float32:
         """
-        Compute the area of the shape with the given contour. 
+        Compute the area of the shape with the given contour.
 
         Parameters
         ----------
         contour : callable
-            Same as AbstractShape.contour 
+            Same as AbstractShape.contour
         maxerr : TYPE, optional
             The target error of the area computation. The default is 0.001.
 
@@ -57,23 +57,31 @@ class Assignment5:
         The area of the shape.
 
         """
+        print("hello!")
+        points = contour(100)
+        points2 = contour(100)
+
+        print("points")
+        print(points)
+        print("points2")
+        print(points2)
         return np.float32(1.0)
-    
+
     def fit_shape(self, sample: callable, maxtime: float) -> AbstractShape:
         """
         Build a function that accurately fits the noisy data points sampled from
-        some closed shape. 
-        
+        some closed shape.
+
         Parameters
         ----------
-        sample : callable. 
+        sample : callable.
             An iterable which returns a data point that is near the shape contour.
         maxtime : float
-            This function returns after at most maxtime seconds. 
+            This function returns after at most maxtime seconds.
 
         Returns
         -------
-        An object extending AbstractShape. 
+        An object extending AbstractShape.
         """
 
         # replace these lines with your solution

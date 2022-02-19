@@ -205,7 +205,7 @@ class TestAssignment2(unittest.TestCase):
         err = 0.01
         X = ass2.intersections(f1, f2, 2, 61.001, maxerr=err)
         # print(len(X))
-        print(X)
+        # print(X)
 
         oldx = -100000
         for x in X:
