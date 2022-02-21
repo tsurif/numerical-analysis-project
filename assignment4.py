@@ -113,13 +113,10 @@ class Assignment4A:
         T0 = time.time()
         Xs = [a, b]
         Ys = [f(a), f(b)]
-        count = 2
         while time.time() - T0 < maxtime - 1:
             x = random.uniform(a, b)
             Xs.append(x)
             Ys.append(f(x))
-            count = count + 1
-        print(count)
         A = np.vander(Xs, d + 1)
         At = np.transpose(A)
         AtA = np.matmul(At, A)
@@ -155,7 +152,7 @@ class TestAssignment4(unittest.TestCase):
         self.assertGreaterEqual(mt, T)
 
     def test_err(self):
-        f = poly(1, 2, 3, 4, 1, 2, 3, 4)
+        f = poly(1, -2, 2, -2, -2, -2, 2, -94)
         df = DELAYED(0.0001)(f)
         nf = NOISY(1)(f)
         ass4 = Assignment4A()
@@ -170,21 +167,6 @@ class TestAssignment4(unittest.TestCase):
         mse = mse / 1000
         print(mse)
 
-    def test_err_2(self):
-        f = poly(1, 2, 3, 4, 1, 2, 3, 4)
-        df = DELAYED(0.01)(f)
-        nf = NOISY(1)(f)
-        ass4 = Assignment4A()
-        T = time.time()
-        ff = ass4.fit(f=nf, a=-2, b=2, d=7, maxtime=20)
-        # print(ff)
-        T = time.time() - T
-        print("done in ", T)
-        mse = 0
-        for x in np.linspace(-0.5, 0.5, 100):
-            mse += (f(x) - ff(x)) ** 2
-        mse = mse / 100
-        print(mse)
 
 if __name__ == "__main__":
     unittest.main()

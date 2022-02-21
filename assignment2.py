@@ -60,7 +60,6 @@ class Assignment2:
             return dy / dx
 
         def sec_derivative_at_point(x, dx):
-            # return (derivative_at_point(x + epsilon) - derivative_at_point(x)) / epsilon
             return (derivative_at_point(x + epsilon) - dx) / epsilon
 
         def bisection(x0: float, x1: float):
@@ -73,22 +72,6 @@ class Assignment2:
             else:
                 return bisection(mid, x1)
 
-        # def bisection_test(x0: float, x1: float, step_count):
-        #     mid = (x0 + x1) / 2
-        #     fmid = f(mid)
-        #     if np.abs(fmid) < maxerr:
-        #         print("#######################################################found:", mid, f(mid))
-        #         print("#######################################################after", step_count, "steps")
-        #         return mid
-        #     print("[", f(x0), f(mid), f(x1), "]")
-        #     print("[", x0, mid, x1, "]")
-        #     if fmid * f(x0) < 0:
-        #         print(">>>")
-        #         return bisection_test(x0, mid, step_count + 1)
-        #     else:
-        #         print("<<<")
-        #         return bisection_test(mid, x1, step_count + 1)
-
         def all_roots_iter() -> Iterable:
             solutions = np.array([])
             x = a
@@ -96,7 +79,6 @@ class Assignment2:
                 fx0 = f(x)
 
                 if np.abs(fx0) < maxerr:
-                    # print("found", x, fx0, " without bisection")
                     solutions = np.append(solutions, x)
                     x1 = x + maxerr * 1.001
                 else:
@@ -104,10 +86,6 @@ class Assignment2:
                     ddx0 = sec_derivative_at_point(x, dx0)
 
                     if (f(x) > 0 and ddx0 < 0 and dx0 < -1) or (f(x) < 0 and ddx0 > 0 and dx0 > 1):
-                       # print("using g")
-                       # print("     f(", x, ")=", fx0)
-                       # print("     f'(", x, ")=", dx0)
-                       # print("     f''(", x, ")=", ddx0)
                        a0 = ddx0 / 2
                        b0 = dx0 - 2 * a0 * x
                        c0 = fx0 - a0 * x * x - b0 * x
@@ -118,10 +96,6 @@ class Assignment2:
                            x1 = x + maxerr * 1.001
 
                     elif (f(x) > 0 and ddx0 < 0 and dx0 > 0.5) or (f(x) < 0 and ddx0 > 0 and dx0 < -0.5):
-                       # print("using reverse g")
-                       # print("     f(", x, ")=", fx0)
-                       # print("     f'(", x, ")=", dx0)
-                       # print("     f''(", x, ")=", ddx0)
                        a0 = ddx0 / 2
                        b0 = dx0 - 2 * a0 * x
                        c0 = fx0 - a0 * x * x - b0 * x
@@ -131,26 +105,16 @@ class Assignment2:
                        if x1 - x < maxerr:
                            x1 = x + maxerr * 1.001
                     elif abs(dx0) > 0.9:
-                        # print("using newton")
-                        # if fx0 * dx0 > 0:
-                        #     print("reverse")
-                        # print("x =", x)
-                        # print("     f(", x, ")=", fx0)
-                        # print("     f'(", x, ")=", dx0)
-                        # print("     f''(", x, ")=", ddx0)
-
                         x1 = max(x - (fx0 / dx0), x + (fx0 / dx0), x + maxerr * 1.001)
                     else:
-                        # print("not using")
                         x1 = x + maxerr * 100
 
                     x1 = min(x1, b)
+
                     if f(x) * f(x1) < 0 and x1 > x:
                         solutions = np.append(solutions, bisection(x, x1))
-                        # solutions = np.append(solutions, bisection_test(x, x1, 0))
                         x1 = x1 + maxerr * 1.001
 
-                # print("in this round x was", x, "and x1 was", x1)
                 x = x1
 
             return solutions
@@ -228,7 +192,7 @@ class TestAssignment2(unittest.TestCase):
         err = 0.000001
         X = ass2.intersections(f1, f2, -9999, 9999, maxerr=err)
         # print(len(X))
-        print(X)
+        # print(X)
 
         oldx = -100000
         for x in X:
@@ -268,8 +232,8 @@ class TestAssignment2(unittest.TestCase):
         f1 = lambda a: np.sin(a)
         f2 = lambda a: 0
         err = 0.01
-        X = ass2.intersections(f1, f2, 0, np.pi * 100000, maxerr=err)
-        print(len(X))
+        X = ass2.intersections(f1, f2, 0, np.pi * 100, maxerr=err)
+        # print(len(X))
         # print(X)
 
         oldx = -100000
@@ -289,7 +253,7 @@ class TestAssignment2(unittest.TestCase):
         err = 0.01
         X = ass2.intersections(np.tan, lambda a: 0, -np.pi/2 + 0.00000001, np.pi/2 - 0.00000001, maxerr=err)
         # print(len(X))
-        print(X)
+        # print(X)
 
         oldx = -100000
         for x in X:
@@ -311,9 +275,9 @@ class TestAssignment2(unittest.TestCase):
 
         err = 0.0001
         X = ass2.intersections(f3_nr, f10, 1, 10, maxerr=err)
-        print(X)
-        print(f3_nr(X) - f10(X))
-        print(len(X))
+        # print(X)
+        # print(f3_nr(X) - f10(X))
+        # print(len(X))
 
         oldx = -100000
         for x in X:
