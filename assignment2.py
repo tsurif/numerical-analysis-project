@@ -86,24 +86,24 @@ class Assignment2:
                     ddx0 = sec_derivative_at_point(x, dx0)
 
                     if (f(x) > 0 and ddx0 < 0 and dx0 < -1) or (f(x) < 0 and ddx0 > 0 and dx0 > 1):
-                       a0 = ddx0 / 2
-                       b0 = dx0 - 2 * a0 * x
-                       c0 = fx0 - a0 * x * x - b0 * x
-                       x1 = max((-b0 - np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0),
-                                (-b0 + np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0))
+                        a0 = ddx0 / 2
+                        b0 = dx0 - 2 * a0 * x
+                        c0 = fx0 - a0 * x * x - b0 * x
+                        x1 = max((-b0 - np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0),
+                                 (-b0 + np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0))
 
-                       if x1 - x < maxerr:
-                           x1 = x + maxerr * 1.001
+                        if x1 - x < maxerr:
+                            x1 = x + maxerr * 1.001
 
                     elif (f(x) > 0 and ddx0 < 0 and dx0 > 0.5) or (f(x) < 0 and ddx0 > 0 and dx0 < -0.5):
-                       a0 = ddx0 / 2
-                       b0 = dx0 - 2 * a0 * x
-                       c0 = fx0 - a0 * x * x - b0 * x
-                       x1 = min((-b0 - np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0),
-                                (-b0 + np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0))
-                       x1 = x + (x - x1)
-                       if x1 - x < maxerr:
-                           x1 = x + maxerr * 1.001
+                        a0 = ddx0 / 2
+                        b0 = dx0 - 2 * a0 * x
+                        c0 = fx0 - a0 * x * x - b0 * x
+                        x1 = min((-b0 - np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0),
+                                 (-b0 + np.sqrt(b0 ** 2 - 4 * a0 * c0)) / (2 * a0))
+                        x1 = x + (x - x1)
+                        if x1 - x < maxerr:
+                            x1 = x + maxerr * 1.001
                     elif abs(dx0) > 0.9:
                         x1 = max(x - (fx0 / dx0), x + (fx0 / dx0), x + maxerr * 1.001)
                     else:
@@ -116,6 +116,10 @@ class Assignment2:
                         x1 = x1 + maxerr * 1.001
 
                 x = x1
+
+            fx0 = f(b)
+            if np.abs(fx0) < maxerr:
+                solutions = np.append(solutions, x)
 
             return solutions
 
@@ -167,9 +171,9 @@ class TestAssignment2(unittest.TestCase):
         # print(f1)
         # print(f2)
         err = 0.01
-        X = ass2.intersections(f1, f2, 2, 61.001, maxerr=err)
-        # print(len(X))
-        # print(X)
+        X = ass2.intersections(f1, f2, 2, 61, maxerr=err)
+        print(len(X))
+        print(X)
 
         oldx = -100000
         for x in X:
@@ -251,7 +255,7 @@ class TestAssignment2(unittest.TestCase):
         f1 = lambda a: np.tan(a)
         f2 = lambda a: 0
         err = 0.01
-        X = ass2.intersections(np.tan, lambda a: 0, -np.pi/2 + 0.00000001, np.pi/2 - 0.00000001, maxerr=err)
+        X = ass2.intersections(np.tan, lambda a: 0, -np.pi / 2 + 0.00000001, np.pi / 2 - 0.00000001, maxerr=err)
         # print(len(X))
         # print(X)
 

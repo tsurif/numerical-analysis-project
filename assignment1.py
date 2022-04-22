@@ -7,8 +7,6 @@ import time
 import random
 
 
-# from math import log
-
 
 def get_bezier_coef_with_thomas_algorithm(points):
     n = len(points) - 1
@@ -84,13 +82,6 @@ def evaluate_bezier(points, a, b):
 
     def f(x0: int):
         i = int(np.floor(((x0 - a) / (b - a)) * n))
-        # roots = np.roots(xc[i] - x0)
-        # t0 = 0.5
-        # for j in range(roots.size):
-        #     if np.isreal(roots[j]):
-        #         if 0 <= roots[j] <= 1:
-        #             t0 = float(roots[j])
-        # return yc[i](t0)
         root = newton_raphson((xc[i] - x0), 0)
         return yc[i](root)
 
@@ -162,73 +153,8 @@ from tqdm import tqdm
 
 class TestAssignment1(unittest.TestCase):
 
-    def test_with_poly(self):
-        T = time.time()
 
-        ass1 = Assignment1()
-        mean_err = 0
 
-        numberoftest = 10
-        numberofpointtotest = 200
-        rangeofinterpolate = 5
-        for i in tqdm(range(numberoftest)):
-
-            # f = lambda x0: np.arctan(x0)
-            # f = lambda x: np.exp(-2 * np.power(x, 2))
-            # f = lambda x: np.divide(np.sin(x), x)
-            f = lambda x: (3 * x**3 - np.exp(x))/100
-
-            ff = ass1.interpolate(f, -rangeofinterpolate, rangeofinterpolate, i + 10000)
-
-            xs = np.random.random(numberofpointtotest)
-            xs = (xs - 0.5) * 2 * rangeofinterpolate
-            # xs = np.sort(xs)
-
-            err = 0
-
-            for x in xs:
-                yy = ff(x)
-                y = f(x)
-                err += abs(y - yy)
-
-            err = err / numberofpointtotest
-            print("\nnum of points:", i + 1000)
-            print("err = ", err)
-            mean_err += err
-        mean_err = mean_err / numberoftest
-
-        T = time.time() - T
-        print(T)
-        print(mean_err)
-
-    def test_with_poly_original(self):
-        T = time.time()
-
-        ass1 = Assignment1()
-        mean_err = 0
-
-        d = 30
-        for i in tqdm(range(100)):
-            a = np.random.randn(d)
-
-            f = np.poly1d(a)
-
-            ff = ass1.interpolate(f, -10, 10, 100)
-
-            xs = np.random.random(200)
-            err = 0
-            for x in xs:
-                yy = ff(x)
-                y = f(x)
-                err += abs(y - yy)
-
-            err = err / 200
-            mean_err += err
-        mean_err = mean_err / 100
-
-        T = time.time() - T
-        print(T)
-        print(mean_err)
 
     def test_with_poly_restrict(self):
         ass1 = Assignment1()

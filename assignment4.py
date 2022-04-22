@@ -34,20 +34,20 @@ class Assignment4A:
     def fit(self, f: callable, a: float, b: float, d: int, maxtime: float) -> callable:
         """
         Build a function that accurately fits the noisy data points sampled from
-        some closed shape. 
-        
+        some closed shape.
+
         Parameters
         ----------
-        f : callable. 
-            A function which returns an approximate (noisy) Y value given X. 
+        f : callable.
+            A function which returns an approximate (noisy) Y value given X.
         a: float
             Start of the fitting range
         b: float
             End of the fitting range
-        d: int 
+        d: int
             The expected degree of a polynomial matching f
         maxtime : float
-            This function returns after at most maxtime seconds. 
+            This function returns after at most maxtime seconds.
 
         Returns
         -------
@@ -111,12 +111,16 @@ class Assignment4A:
             return
 
         T0 = time.time()
+        maxtime = 0.8 * maxtime
         Xs = [a, b]
         Ys = [f(a), f(b)]
+        # count = 2
         while time.time() - T0 < maxtime - 1:
             x = random.uniform(a, b)
+            # count = count + 1
             Xs.append(x)
             Ys.append(f(x))
+        # print(count)
         A = np.vander(Xs, d + 1)
         At = np.transpose(A)
         AtA = np.matmul(At, A)
@@ -133,32 +137,32 @@ from tqdm import tqdm
 
 class TestAssignment4(unittest.TestCase):
 
-    def test_return(self):
-        f = NOISY(0.01)(poly(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1))
-        ass4 = Assignment4A()
-        T = time.time()
-        shape = ass4.fit(f=f, a=-1, b=1, d=12, maxtime=5)
-        T = time.time() - T
-        self.assertLessEqual(T, 5)
-
-    def test_delay(self):
-        f = DELAYED(0.1)(NOISY(0.01)(poly(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)))
-
-        ass4 = Assignment4A()
-        T = time.time()
-        mt = 10
-        shape = ass4.fit(f=f, a=-1, b=1, d=12, maxtime=mt)
-        T = time.time() - T
-        self.assertGreaterEqual(mt, T)
+    # def test_return(self):
+    #     f = NOISY(0.01)(poly(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1))
+    #     ass4 = Assignment4A()
+    #     T = time.time()
+    #     shape = ass4.fit(f=f, a=-1, b=1, d=12, maxtime=5)
+    #     T = time.time() - T
+    #     self.assertLessEqual(T, 5)
+    #
+    # def test_delay(self):
+    #     f = DELAYED(0.1)(NOISY(0.01)(poly(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)))
+    #
+    #     ass4 = Assignment4A()
+    #     T = time.time()
+    #     mt = 10
+    #     shape = ass4.fit(f=f, a=-1, b=1, d=12, maxtime=mt)
+    #     T = time.time() - T
+    #     self.assertGreaterEqual(mt, T)
 
     def test_err(self):
-        f = poly(1, -2, 2, -2, -2, -2, 2, -94)
+        f = poly(-2, -2, -2, 2, -5)
         df = DELAYED(0.0001)(f)
         nf = NOISY(1)(f)
         ass4 = Assignment4A()
         T = time.time()
-        ff = ass4.fit(f=nf, a=-2, b=2, d=7, maxtime=20)
-        print(ff)
+        ff = ass4.fit(f=nf, a=-2, b=2, d=7, maxtime=5)
+        # print(ff)
         T = time.time() - T
         print("done in ", T)
         mse = 0
@@ -166,6 +170,7 @@ class TestAssignment4(unittest.TestCase):
             mse += (f(x) - ff(x)) ** 2
         mse = mse / 1000
         print(mse)
+
 
 
 if __name__ == "__main__":
